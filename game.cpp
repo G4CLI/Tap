@@ -14,9 +14,8 @@
 #include <locale.h>
 #include <wchar.h>
 
-using namespace std;
-
 char gc(){
+    using namespace std;
     char buf=0;
     struct termios old={0};
     fflush(stdout);
@@ -37,9 +36,10 @@ char gc(){
     return buf;
 }
 
-string rMap(int len){
+std::string rMap(int len){
+    // TODO: check max top, bottom
     srand(time (0));
-    string rMap = "__________";
+    std::string rMap = "__________";
     char newChar;
     for (int i = 0; i < len - 10; ++i){
         int nChar = (rand() % static_cast<int>(101));
@@ -68,8 +68,8 @@ int main(){
     // If arg int then maplen arg
     int maplen = 500;
     // If arg str then map file str
-    string map = rMap(maplen);
-    string currentDebugText = "None";
+    std::string map = rMap(maplen);
+    std::string currentDebugText = "None";
     const int pause = 10;           // Pause so game time = refresh * n
     int floorLevel = 3;            // Floor level
     int floorElev = 0;            // Floor elevation
@@ -88,7 +88,7 @@ int main(){
 
         ioctl(STDOUT_FILENO, TIOCGWINSZ, &w);  // Terminal size
 
-        thread thread([&thread]() {
+        std::thread thread([&thread]() {
             gc();
             thread.detach();               // Wait for input
         });
@@ -97,9 +97,13 @@ int main(){
         while(thread.joinable()){
             if (timer >= pause){
                 floorElev = 0;
-                string visibleMap(map.c_str() + gtim, map.c_str() + maplen);
+                std::string visibleMap(map.c_str() + gtim, map.c_str() + maplen);
                 clear();
                 timer = 0;
+                // CHECK FOR END
+                if (visibleMap.empty()){
+                    goto end;
+                }
                 // DRAW SCREEN
                 for (int i = 0; i < visibleMap.length(); ++i){
 
@@ -107,7 +111,8 @@ int main(){
                         mvprintw(1,1,"floorPlus         %d", floorPlus * -1);
                         mvprintw(2,1,"mainPlayer.jump   %d", mainPlayer.jump);
                         mvprintw(3,1,"mainPlayer.Y      %d", mainPlayer.Y);
-                        mvprintw(4,1,"currentDebugText  %s", currentDebugText.c_str());
+                        mvprintw(4,1,"visibleMap[0]     %c", visibleMap[0]);
+                        mvprintw(5,1,"currentDebugText  %s", currentDebugText.c_str());
                     }
 
                     if (visibleMap[i] == '/'){
@@ -124,36 +129,39 @@ int main(){
                 }
                 if (visibleMap[0] == '/'){
                     floorPlus--;
+                    if (mainPlayer.Y + mainPlayer.jump <= -111){ // temporal
+                        goto end;
+                    }
                 } else if (visibleMap[0] == 'v'){
+                    mainPlayer.Y--;
                     floorPlus++;
                 }
+
                 mvprintw(w.ws_row - (mainPlayer.Y + mainPlayer.jump), 1, "●"); // Player
                 // JUMP HERE
                 if (mainPlayer.jumping) {
+                    // ^
                     if (mainPlayer.jump < 5 && goingup){
                         mainPlayer.jump++;
                         currentDebugText = "JumpTriggered";
+                    // v start
                     } else if (mainPlayer.Y + mainPlayer.jump > (floorPlus * -1) + 4){
                         mainPlayer.jump--;
                         goingup = false;
                         currentDebugText = "Falling";
-                    } else if (mainPlayer.Y + mainPlayer.jump <= (floorPlus * -1) + 3 && false){
+                    // v continue, check floor
+                    } else {
                         mainPlayer.Y += mainPlayer.jump;
                         mainPlayer.jump = 0;
                         mainPlayer.jumping = false;
                         currentDebugText = "FloorBelow";
-                    } else {
-                        mainPlayer.Y += floorPlus - floorLevel + mainPlayer.jump;
-                        mainPlayer.jump = 0;
-                        mainPlayer.jumping = false;
-                        currentDebugText = "DisableJump";
                     }
                 }
                 gtim++;
                 refresh();
             }
             timer++;
-            this_thread::sleep_for(chrono::milliseconds(10));
+            std::this_thread::sleep_for(std::chrono::milliseconds(10));
         }
         // POOL ELDI
 
@@ -164,6 +172,7 @@ int main(){
         }
         mainPlayer.jumping = true;
     }
+end:
     endwin();
     curs_set(1);
     // POOL NIAM
