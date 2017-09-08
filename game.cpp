@@ -10,6 +10,7 @@
 #include <atomic>
 #include <chrono>
 #include <ctime>
+#include <vector>
 
 #include <locale.h>
 #include <wchar.h>
@@ -69,6 +70,9 @@ int main(){
     int maplen = 500;
     // If arg str then map file str
     std::string map = rMap(maplen);
+    std::vector<std::string> pPlayer = {"◐", "◓", "◑", "◒"};
+    int pp = 0;
+    int screens = 0;
     std::string currentDebugText = "None";
     const int pause = 10;           // Pause so game time = refresh * n
     int floorLevel = 3;            // Floor level
@@ -96,10 +100,18 @@ int main(){
         // IDLE LOOP
         while(thread.joinable()){
             if (timer >= pause){
+                if (pp >= 3){
+                    pp = 0;
+                } else {
+                    pp++;
+                }
                 floorElev = 0;
                 std::string visibleMap(map.c_str() + gtim, map.c_str() + maplen);
                 clear();
                 timer = 0;
+                if (graph){
+                    screens++;
+                }
                 // CHECK FOR END
                 if (visibleMap.empty()){
                     goto end;
@@ -112,7 +124,9 @@ int main(){
                         mvprintw(2,1,"mainPlayer.jump   %d", mainPlayer.jump);
                         mvprintw(3,1,"mainPlayer.Y      %d", mainPlayer.Y);
                         mvprintw(4,1,"visibleMap[0]     %c", visibleMap[0]);
-                        mvprintw(5,1,"currentDebugText  %s", currentDebugText.c_str());
+                        mvprintw(5,1,"pPlayer pp        %d", pp);
+                        mvprintw(6,1,"screens           %d", screens);
+                        mvprintw(7,1,"currentDebugText  %s", currentDebugText.c_str());
                     }
 
                     if (visibleMap[i] == '/'){
@@ -137,7 +151,9 @@ int main(){
                     floorPlus++;
                 }
 
-                mvprintw(w.ws_row - (mainPlayer.Y + mainPlayer.jump), 1, "●"); // Player
+                std::string playero = "●";
+
+                mvprintw(w.ws_row - (mainPlayer.Y + mainPlayer.jump), 1, pPlayer[pp].c_str()); // Player
                 // JUMP HERE
                 if (mainPlayer.jumping) {
                     // ^
