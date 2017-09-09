@@ -12,6 +12,8 @@
 #include <ctime>
 #include <vector>
 
+#include "config.h"
+
 #include <locale.h>
 #include <wchar.h>
 
@@ -83,8 +85,6 @@ int main(){
     bool goingup;             // Jump direction
     int gtim = 0;            // Global timer
 
-    bool graph = true;
-
     // MAIN LOOP
     initscr();
     curs_set(0);
@@ -147,7 +147,9 @@ int main(){
                         goto end;
                     }
                 } else if (visibleMap[0] == 'v'){
-                    mainPlayer.Y--;
+                    if (!mainPlayer.jumping){
+                        mainPlayer.Y--;
+                    }
                     floorPlus++;
                 }
 
