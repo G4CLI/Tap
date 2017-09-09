@@ -18,7 +18,6 @@
 #include <wchar.h>
 
 char gc(){
-    using namespace std;
     char buf=0;
     struct termios old={0};
     fflush(stdout);
