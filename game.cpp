@@ -15,7 +15,6 @@
 #include "config.h"
 
 #include <locale.h>
-#include <wchar.h>
 
 char gc(){
     char buf=0;
@@ -139,6 +138,7 @@ int main(){
                     } else {
                         mvprintw(w.ws_row - (floorLevel + floorElev) + floorPlus, i, "\u2501");
                     }
+
                 }
                 if (visibleMap[0] == '/'){
                     floorPlus--;
@@ -152,8 +152,9 @@ int main(){
                     floorPlus++;
                 }
 
-                std::string playero = "●";
-
+                if ( mainPlayer.Y + mainPlayer.jump - 4 < floorPlus * -1 ){
+                    goto end;
+                }
                 mvprintw(w.ws_row - (mainPlayer.Y + mainPlayer.jump), 1, pPlayer[pp].c_str()); // Player
                 // JUMP HERE
                 if (mainPlayer.jumping) {
